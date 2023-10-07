@@ -1,0 +1,254 @@
+// ** Mongoose
+import mongoose from "mongoose";
+
+// ** Models
+import StudySet from "../models/StudySet";
+import Term from "../models/Term";
+import StudySetRate from "../models/StudySetRate";
+import User from "../models/User";
+
+// ** Constants
+import { authConstant, studySetConstant, userConstant } from "../constant";
+
+export const studySetService = {
+  create: async (userId, data) => {
+    const studySet = await StudySet.create({
+      ...data,
+      userId,
+    });
+
+    const studySetJson = studySet.toJSON();
+
+    delete studySetJson.visitPassword;
+    delete studySetJson.editPassword;
+
+    return studySetJson;
+  },
+  update: async (userId, data) => {
+    const studySet = await StudySet.findById(data?.id);
+
+    if (!studySet) throw new Error(studySetConstant.STUDYSET_NOT_FOUND);
+    if (!studySet.userId.equals(userId))
+      throw new Error(authConstant.FORBIDDEN);
+
+    for (const key in data) {
+      if (
+        data.hasOwnProperty(key) &&
+        data[key] !== null &&
+        data[key] !== undefined
+      ) {
+        studySet[key] = data[key];
+      }
+    }
+
+    await studySet.save();
+
+    const studySetJson = studySet.toJSON();
+
+    return studySetJson;
+  },
+  delete: async (userId, studySetId) => {
+    const studySet = await StudySet.findById(studySetId);
+
+    if (!studySet) throw new Error(studySetConstant.STUDYSET_NOT_FOUND);
+    if (!studySet.userId.equals(userId))
+      throw new Error(authConstant.FORBIDDEN);
+
+    studySet.isDelete = true;
+
+    await studySet.save();
+
+    const studySetJson = studySet.toJSON();
+    delete studySetJson.visitPassword;
+    delete studySetJson.editPassword;
+
+    return studySetJson;
+  },
+  getAllByUserId: async (userId, limit, offset, search) => {
+    const limitNum = Number.parseInt(limit);
+    const offsetNum = Number.parseInt(offset);
+
+    const query = {
+      userId,
+      isDelete: false,
+      title: { $regex: new RegExp(search || "", "i") },
+    };
+
+    const data = await StudySet.find(query)
+      .sort({ _id: -1 })
+      .populate({
+        path: "userId",
+        select: "_id fullName email dob gender role picture",
+      })
+      .limit(limitNum)
+      .skip(limitNum * offsetNum)
+      .exec();
+
+    const totalCount = await StudySet.countDocuments(query);
+
+    const studySets = await Promise.all(
+      data.map(async (studySet) => {
+        const json = studySet.toJSON();
+
+        const totalTermOfStudySet = await Term.countDocuments({
+          studySetId: studySet._id,
+        });
+
+        json.user = json.userId;
+        json.numberOfTerms = totalTermOfStudySet;
+
+        delete json.userId;
+        return json;
+      })
+    );
+
+    return {
+      limit: limitNum,
+      offset: offsetNum,
+      totalPage: Math.ceil(totalCount / limitNum),
+      studySets,
+    };
+  },
+  findById: async (id) => {
+    return await StudySet.findById(id);
+  },
+  getById: async (studySetId, user) => {
+    const studySet = await StudySet.findById(studySetId).populate({
+      path: "userId",
+      select: "_id fullName email dob gender role picture",
+    });
+
+    if (!studySet) throw new Error(studySetConstant.STUDYSET_NOT_FOUND);
+
+    const totalRate = await StudySetRate.countDocuments({
+      studySetId,
+    });
+    const sumStar = (
+      await StudySetRate.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalStar: { $sum: "$star" },
+          },
+        },
+      ])
+    )[0]?.totalStar;
+
+    const json = studySet.toJSON();
+    json.user = json.userId;
+    json.totalRate = totalRate;
+    json.avgStar = Number.parseFloat((sumStar / totalRate).toFixed(1));
+
+    delete json.userId;
+    delete json.visitPassword;
+    delete json.shareTo;
+
+    return json;
+  },
+  createRate: async (userId, studySetId, star, comment) => {
+    const studySet = await studySetService.findById(studySetId);
+    if (!studySet) throw new Error(studySetConstant.STUDYSET_NOT_FOUND);
+
+    const rate = await StudySetRate.findOne({
+      userId,
+      studySetId,
+    });
+    if (rate) {
+      rate.star = star;
+      rate.comment = comment;
+
+      await rate.save();
+      await rate.populate({
+        path: "userId",
+        select: "_id fullName email dob gender role picture",
+      });
+
+      const json = rate.toJSON();
+
+      json.user = json.userId;
+      delete json.userId;
+
+      return {
+        rate: json,
+        isUpdate: true,
+        isCreate: false,
+      };
+    } else {
+      const rateCreated = new StudySetRate({
+        studySetId: studySet._id._id,
+        star,
+        comment,
+        userId,
+      });
+
+      await rateCreated.save();
+      await rateCreated.populate({
+        path: "userId",
+        select: "_id fullName email dob gender role picture",
+      });
+
+      const json = rateCreated.toJSON();
+
+      json.user = json.userId;
+      delete json.userId;
+
+      return {
+        rate: json,
+        isUpdate: false,
+        isCreate: true,
+      };
+    }
+  },
+  getRates: async (studySetId, limit, offset) => {
+    const studySet = await studySetService.findById(studySetId);
+    if (!studySet) throw new Error(studySetConstant.STUDYSET_NOT_FOUND);
+
+    const limitNum = Number.parseInt(limit);
+    const offsetNum = Number.parseInt(offset);
+
+    const data = await StudySetRate.find({
+      studySetId,
+    })
+      .sort({ _id: -1 })
+      .populate({
+        path: "userId",
+        select: "_id fullName email dob gender role picture",
+      })
+      .limit(limitNum)
+      .skip(limitNum * offsetNum);
+
+    const dataNext = await StudySetRate.find({
+      studySetId,
+    })
+      .limit(limitNum)
+      .skip(limitNum * (offsetNum + 1));
+
+    const rates = data.map((rate) => {
+      const json = rate.toJSON();
+
+      json.user = json.userId;
+      delete json.userId;
+
+      return json;
+    });
+
+    return {
+      rates,
+      isHasMore: dataNext.length > 0,
+    };
+  },
+  getRateStudySetOfUser: async (studySetId, userId) => {
+    const studySet = await studySetService.findById(studySetId);
+    if (!studySet) throw new Error(studySetConstant.STUDYSET_NOT_FOUND);
+
+    const user = await User.findById(userId);
+    if (!user) throw new Error(userConstant.USER_NOT_FOUND);
+
+    const rate = await StudySetRate.findOne({
+      userId,
+      studySetId,
+    });
+
+    return rate;
+  },
+};
