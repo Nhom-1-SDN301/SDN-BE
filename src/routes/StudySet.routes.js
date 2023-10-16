@@ -115,4 +115,11 @@ studySetRouter.get(
   StudySetController.getRateStudySetOfUser
 );
 
+studySetRouter.post(
+  "/:studySetId/share",
+  verifyAccessToken,
+  param("studySetId").notEmpty().withMessage(studySetConstant.ID_REQUIRED),
+  StudySetController.shareStudySet
+);
+
 export default studySetRouter;

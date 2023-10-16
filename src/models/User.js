@@ -56,7 +56,6 @@ const User = mongoose.model(
       isDelete: {
         type: Boolean,
         default: false,
-        select: false,
       },
     },
     { timestamps: true }

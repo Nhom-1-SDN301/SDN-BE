@@ -6,6 +6,7 @@ import { studySetService } from "./StudySet.service";
 
 // ** Constants
 import { studySetConstant, authConstant, termConstant } from "../constant";
+import StudySet from "../models/StudySet";
 
 export const termService = {
   create: async (userId, studySetId, dataTerm) => {
@@ -47,6 +48,7 @@ export const termService = {
     if (
       studySet.canVisit === 2 &&
       !studySet.userId.equals(userId) &&
+      !studySet.shareTo.find((_id) => _id.equals(userId)) &&
       studySet.visitPassword !== password
     )
       throw new Error(studySetConstant.VISIT_PASSWORD_INVALID);
@@ -56,5 +58,15 @@ export const termService = {
     });
 
     return terms;
+  },
+  delete: async (id, userId) => {
+    const term = await Term.findById(id);
+    if (!term) throw new Error(termConstant.TERM_NOTFOUND);
+
+    const studySet = await StudySet.findById(term.studySetId);
+    if (!studySet.userId.equals(userId))
+      throw new Error(authConstant.FORBIDDEN);
+
+    return await term.deleteOne();
   },
 };

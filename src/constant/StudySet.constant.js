@@ -11,4 +11,6 @@ export const studySetConstant = {
   STUDYSET_NOT_FOUND: "Study set not found",
   STAR_REQUIRED: "Star is required",
   STAR_RANGE: "Star must in range 1 to 5",
+  SHARE_SUCCESS: "Share study set to user success",
+  LIMIT_REPORT: "You can't report study set at this time",
 };

@@ -31,7 +31,6 @@ export const StudySetController = {
       );
     } catch (err) {
       const errMessage = err?.message;
-      console.log(errMessage);
       res.status(200).json(
         response.error({
           code: 500,
@@ -164,6 +163,7 @@ export const StudySetController = {
       );
     } catch (err) {
       const errMessage = err?.message;
+      console.log(errMessage);
       const code =
         errMessage === studySetConstant.STUDYSET_NOT_FOUND
           ? 404
@@ -266,6 +266,47 @@ export const StudySetController = {
     } catch (err) {
       const errMessage = err?.message;
       const code = errMessage === httpConstant.SERVER_ERROR ? 500 : 500;
+      res.status(200).json(
+        response.error({
+          code,
+          message: code === 500 ? httpConstant.SERVER_ERROR : errMessage,
+        })
+      );
+    }
+  },
+  shareStudySet: async (req, res) => {
+    const error = validation.validationRequest(req, res);
+
+    if (error) return res.status(200).json(error);
+
+    const { studySetId } = req.params;
+    const { users } = req.body;
+
+    const user = req.user;
+
+    try {
+      await studySetService.shareStudySet({
+        studySetId,
+        users,
+        userId: user.id,
+      });
+
+      res.status(200).json(
+        response.success({
+          data: {
+            message: studySetConstant.SHARE_SUCCESS,
+          },
+        })
+      );
+    } catch (err) {
+      const errMessage = err?.message;
+      console.log(errMessage);
+      const code =
+        errMessage === studySetConstant.STUDYSET_NOT_FOUND
+          ? 404
+          : errMessage === authConstant.FORBIDDEN
+          ? 403
+          : 500;
       res.status(200).json(
         response.error({
           code,

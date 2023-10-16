@@ -1,5 +1,5 @@
 // ** Mongoose
-import mongoose from "mongoose";
+import { Types } from "mongoose";
 
 // ** Models
 import StudySet from "../models/StudySet";
@@ -9,6 +9,8 @@ import User from "../models/User";
 
 // ** Constants
 import { authConstant, studySetConstant, userConstant } from "../constant";
+import { userService } from "./User.service";
+import { transporter } from "../config/nodemailer";
 
 export const studySetService = {
   create: async (userId, data) => {
@@ -20,7 +22,6 @@ export const studySetService = {
     const studySetJson = studySet.toJSON();
 
     delete studySetJson.visitPassword;
-    delete studySetJson.editPassword;
 
     return studySetJson;
   },
@@ -60,7 +61,6 @@ export const studySetService = {
 
     const studySetJson = studySet.toJSON();
     delete studySetJson.visitPassword;
-    delete studySetJson.editPassword;
 
     return studySetJson;
   },
@@ -123,25 +123,31 @@ export const studySetService = {
     const totalRate = await StudySetRate.countDocuments({
       studySetId,
     });
-    const sumStar = (
-      await StudySetRate.aggregate([
-        {
-          $group: {
-            _id: null,
-            totalStar: { $sum: "$star" },
+
+    const avgStar =
+      (
+        await StudySetRate.aggregate([
+          {
+            $match: {
+              studySetId: new Types.ObjectId(studySetId),
+            },
           },
-        },
-      ])
-    )[0]?.totalStar;
+          {
+            $group: {
+              _id: null,
+              totalStar: { $avg: "$star" },
+            },
+          },
+        ])
+      )[0]?.totalStar || 0;
 
     const json = studySet.toJSON();
     json.user = json.userId;
     json.totalRate = totalRate;
-    json.avgStar = Number.parseFloat((sumStar / totalRate).toFixed(1));
+    json.avgStar = Number.parseFloat(Math.round(avgStar * 10) / 10);
 
     delete json.userId;
     delete json.visitPassword;
-    delete json.shareTo;
 
     return json;
   },
@@ -250,5 +256,29 @@ export const studySetService = {
     });
 
     return rate;
+  },
+  shareStudySet: async ({ studySetId, users = [], userId }) => {
+    const studySet = await studySetService.findById(studySetId);
+    if (!studySet) throw new Error(studySetConstant.STUDYSET_NOT_FOUND);
+
+    if (!studySet.userId.equals(userId))
+      throw new Error(authConstant.FORBIDDEN);
+
+    for (let i = 0; i < users.length; ++i) {
+      if (!studySet.shareTo.find((objectId) => objectId.equals(users[i]))) {
+        studySet.shareTo.push(users[i]);
+
+        const user = await userService.getUserById({ userId: users[i] });
+
+        await transporter.sendMail({
+          from: "BOT",
+          to: user?.email,
+          subject: "Notification",
+          html: `You have shared to <a href='${process.env.CLIENT_URL}/flash-card/${studySetId}'>study set</a>`,
+        });
+      }
+    }
+
+    return await studySet.save();
   },
 };

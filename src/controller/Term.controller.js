@@ -5,7 +5,7 @@ import { termService } from "../services";
 import { validation } from "../utils/validation";
 
 // ** Constants
-import { authConstant, httpConstant, studySetConstant } from "../constant";
+import { authConstant, httpConstant, studySetConstant, termConstant } from "../constant";
 
 // ** Utils
 import { response } from "../utils/baseResponse";
@@ -85,7 +85,6 @@ export const TermController = {
           : errMessage === studySetConstant.VISIT_PASSWORD_INVALID
           ? 401
           : 500;
-      console.log(errMessage);
       res.status(200).json(
         response.error({
           code,
@@ -121,7 +120,7 @@ export const TermController = {
     } catch (err) {
       const errMessage = err?.message;
       const code =
-        errMessage === studySetConstant.STUDYSET_NOT_FOUND
+        errMessage === termConstant.TERM_NOTFOUND
           ? 404
           : errMessage === authConstant.FORBIDDEN
           ? 403
@@ -135,4 +134,40 @@ export const TermController = {
       );
     }
   },
+  deleteTerm: async (req, res) => {
+    const error = validation.validationRequest(req, res);
+
+    if (error) return res.status(200).json(error);
+
+    const { id } = req.params;
+    const user = req.user;
+
+    try {
+      const data = await termService.delete(id, user.id);
+
+      res.status(200).json(
+        response.success({
+          data: {
+            term: data,
+          },
+        })
+      );
+    } catch (err) {
+      const errMessage = err?.message;
+      console.log(errMessage);
+      const code =
+        errMessage === termConstant.TERM_NOTFOUND
+          ? 404
+          : errMessage === authConstant.FORBIDDEN
+          ? 403
+          : 500;
+
+      res.status(200).json(
+        response.error({
+          code,
+          message: code === 500 ? httpConstant.SERVER_ERROR : errMessage,
+        })
+      );
+    }
+  }
 };

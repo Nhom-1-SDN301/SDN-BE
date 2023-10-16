@@ -8,7 +8,7 @@ import { TermController } from "../controller";
 import { verifyAccessToken, verifyLoggedIn } from "../middleware/jwt";
 
 // ** Validator
-import { body, query } from "express-validator";
+import { body, param, query } from "express-validator";
 
 // ** Constants
 import { termConstant, studySetConstant } from "../constant";
@@ -51,7 +51,7 @@ termRouter.patch(
     .trim()
     .notEmpty()
     .withMessage(termConstant.NAME_REQUIRED)
-    .isLength({ max: 255 }),
+    .isLength({ max: 550 }),
   body("definition")
     .trim()
     .notEmpty()
@@ -69,6 +69,13 @@ termRouter.get(
     .withMessage(studySetConstant.STUDYSET_NOT_FOUND),
   query("password").optional().trim(),
   TermController.getTermOfStudySet
+);
+
+termRouter.delete(
+  "/:id",
+  verifyAccessToken,
+  param("id").trim().notEmpty().withMessage(termConstant.ID_REQUIRED),
+  TermController.deleteTerm
 );
 
 export default termRouter;
