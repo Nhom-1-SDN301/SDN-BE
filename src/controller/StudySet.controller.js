@@ -143,6 +143,7 @@ export const StudySetController = {
       );
     }
   },
+  
   getStudySetById: async (req, res) => {
     const error = validation.validationRequest(req, res);
 

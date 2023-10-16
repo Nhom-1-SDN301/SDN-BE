@@ -4,17 +4,13 @@ const { String, ObjectId, Boolean } = Schema.Types;
 
 const Folder = mongoose.model(
   "Folder",
-  new Schema(
+  new Schema( 
     {
       title: {
         type: String,
         required: true,
       },
       description: String,
-      isDelete: {
-        type: Boolean,
-        default: false,
-      },
       userId: {
         type: ObjectId,
         ref: "User",
