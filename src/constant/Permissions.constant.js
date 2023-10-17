@@ -5,6 +5,6 @@ export const permissionsConstrant = {
     USER_NOT_FOUND: "User not found",
     EMAIL_REQUIRED: "Email is required",
     STATUS_RANGE: "Status must 0 or 1",
-    ROLE_RANGE: "Role must minimum at 1 and maximum at 3",
+    ROLE_RANGE: " Role must minimum at 1 and maximum at 3",
 
 }

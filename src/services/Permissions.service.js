@@ -21,7 +21,7 @@ export const permissionsService = {
   getUserById: async ({ userId }) => {
     return await User.findOne({ _id: userId });
   },
-  getUsersByAdmin: async ({ limit, offset, search, role, status, userId }) => {
+  getUsersByAdmin: async ({  limit, offset, search, role, status, userId }) => {
     const limitNum = Number.parseInt(limit);
     const offsetNum = Number.parseInt(offset);
     const roleNum = Number.parseInt(role);

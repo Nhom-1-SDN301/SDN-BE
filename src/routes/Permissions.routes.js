@@ -25,7 +25,7 @@ const permissionsRouter = express.Router();
  *          description: None
  */
 permissionsRouter.get(
-  "/:email/study-set",
+  " /:email/study-set",
   verifyAccessToken,
   param("email").trim().notEmpty().withMessage(userConstant.EMAIL_REQUIRED),
   query("studySetId")

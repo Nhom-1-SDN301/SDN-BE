@@ -95,7 +95,7 @@ export const PermissionsController = {
     if (error) return res.status(200).json(error);
 
     const { userId } = req.params;
-    const { isDelete } = req.body;
+    const { isDelete  } = req.body;
 
     try {
       const result = await permissionsService.updateStatusUser({ userId, isDelete });
