@@ -3,7 +3,7 @@ import mongoose, { get } from "mongoose";
 // ** Models
 
 import User from "../models/User";
-import { authConstant, httpConstant, permissionsConstrant } from "../constant";
+import { authConstant, permissionsConstrant } from "../constant";
 
 export const permissionsService = {
     createPermissions: async (userId, data) => {

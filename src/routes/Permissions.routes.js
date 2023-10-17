@@ -8,7 +8,7 @@ import { PermissionsController } from '../controller/Permissions.controller';
 import { verifyAccessToken, verifyLoggedIn } from "../middleware/jwt";
 
 // ** Validator
-import { body, param, query } from "express-validator";
+
 
 // ** Constants
 import { commonConstant, userConstant } from "../constant";

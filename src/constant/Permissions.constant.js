@@ -1,5 +1,5 @@
 export const permissionsConstrant = { 
-    PERMISSIONS_NOT_FOUND: "permission not found",
+    PERMISSIONS_NOT_FOUND: "Permission not found",
 
 
 }

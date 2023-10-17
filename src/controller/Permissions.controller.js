@@ -43,7 +43,7 @@ export const PermissionsController = {
   deletePermissions: async (req, res) => {
     const error = validation.validationRequest(req, res);
 
-    if (error) return res.status(200).json(error);
+    if (error) return res.status(201).json(error);
 
     const permissionsId = req.query.id;
     const { id } = req.user;
