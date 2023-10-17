@@ -1,24 +1,78 @@
 // ** Express
-import express from 'express';
+import express from "express";
 
 // ** Controllers
-import { PermissionsController } from '../controller/Permissions.controller';
-
-// ** Jwt
-import { verifyAccessToken, verifyLoggedIn } from "../middleware/jwt";
-
-// ** Validator
-
+import { PermissionsController } from "../controller";
 
 // ** Constants
-import { commonConstant, userConstant } from "../constant";
+import { commonConstant, studySetConstant, userConstant } from "../constant";
+
+// ** Validation
+import { body, param, query } from "express-validator";
+import { verifyAccessToken, verifyAdminOrHigherToken } from "../middleware/jwt";
+import { transporter } from "../config/nodemailer";
 
 const permissionsRouter = express.Router();
 
-permissionsRouter.post('/create',verifyAccessToken, PermissionsController.createPermissions);
+/**
+ * @openapi
+ * /user:
+ *  get:
+ *      description: get all user
+ *      tags:
+ *          - User
+ *      requestBody:
+ *          description: None
+ */
+permissionsRouter.get(
+  "/:email/study-set",
+  verifyAccessToken,
+  param("email").trim().notEmpty().withMessage(userConstant.EMAIL_REQUIRED),
+  query("studySetId")
+    .trim()
+    .notEmpty()
+    .withMessage(studySetConstant.ID_REQUIRED),
+    PermissionsController.getUsersByEmail
+);
 
-permissionsRouter.get('/getAll', verifyAccessToken, PermissionsController.getAllPermissions );
+permissionsRouter.get(
+  "/admin",
+  verifyAdminOrHigherToken,
+  query("limit")
+    .notEmpty()
+    .withMessage(commonConstant.LIMIT_REQUIRED)
+    .isInt({ min: 1 })
+    .withMessage(commonConstant.LIMIT_MIN),
+  query("offset")
+    .notEmpty()
+    .withMessage(commonConstant.OFFSET_REQUIRED)
+    .isInt({ min: 0 })
+    .withMessage(commonConstant.OFFSET_MIN),
+  query("search")
+    .optional()
+    .isLength({ max: 255 })
+    .withMessage(commonConstant.SEARCH_MAX_LENGTH),
+  query("role")
+    .optional()
+    .isInt({ min: 1, max: 3 })
+    .withMessage(userConstant.ROLE_RANGE),
+  query("status")
+    .optional()
+    .isInt({ min: 0, max: 1 })
+    .withMessage(userConstant.STATUS_RANGE),
+    PermissionsController.getUserByAdmin
+);
 
-permissionsRouter.delete('/', verifyAccessToken, PermissionsController.deletePermissions )
+permissionsRouter.patch(
+  "/admin/status/:userId",
+  verifyAdminOrHigherToken,
+  param("userId").trim().notEmpty().withMessage(userConstant.ID_REQUIRED),
+  body("isDelete")
+    .notEmpty()
+    .withMessage(commonConstant.ISDELETE_REQUIRED)
+    .isBoolean()
+    .withMessage(commonConstant.ISDELETE_BOOLEAN),
+    PermissionsController.updateStatusUser
+);
 
 export default permissionsRouter;

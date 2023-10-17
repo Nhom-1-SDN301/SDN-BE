@@ -1,72 +1,47 @@
-// ** Service
-import { permissionsService } from "../services/Permissions.service";
+// ** Models
+import User from "../models/User";
 
-// ** Base Response
-import { response } from "../utils/baseResponse";
+// ** Services
+import { permissionsService } from "../services";
 
 // ** Constants
-import { authConstant, httpConstant } from "../constant";
-import  {permissionsConstrant} from "../constant/Permissions.constant";
-// ** Validator
+import { authConstant, httpConstant, studySetConstant } from "../constant";
+
+// ** Utils
 import { validation } from "../utils/validation";
+import { response } from "../utils/baseResponse";
 
 export const PermissionsController = {
-  createPermissions: async (req, res) => {
+  getUsersByEmail: async (req, res) => {
     const error = validation.validationRequest(req, res);
 
     if (error) return res.status(200).json(error);
 
-    const data = req.body;
-    const { id } = req.user;
+    const { email } = req.params;
+    const { studySetId } = req.query;
+    const user = req.user;
 
     try {
-      const permissionsCreated = await permissionsService.create(id, data);
-
+      const users = await permissionsService.getUsersByEmail({
+        text: email,
+        studySetId,
+        userId: user.id,
+      });
       res.status(200).json(
         response.success({
           data: {
-            permissions: permissionsCreated,
-          },
-        })
-      );
-    } catch (err) {
-      const errMessage = err?.message;
-      res.status(200).json(
-        response.error({
-          code: 500,
-          message: httpConstant.SERVER_ERROR,
-        })
-      );
-    }
-  },
-
-  deletePermissions: async (req, res) => {
-    const error = validation.validationRequest(req, res);
-
-    if (error) return res.status(201).json(error);
-
-    const permissionsId = req.query.id;
-    const { id } = req.user;
-
-    try {
-      const permissionsDeleted = await permissionsService.delete(id, permissionsId);
-
-      res.status(200).json(
-        response.success({
-          data: {
-            permissions: permissionsDeleted,
+            users,
           },
         })
       );
     } catch (err) {
       const errMessage = err?.message;
       const code =
-        errMessage === permissionsConstrant.PERMISSIONS_NOT_FOUND
+        errMessage === studySetConstant.STUDYSET_NOT_FOUND
           ? 404
-          : errMessage === authConstant.FORBIDDEN
+          : authConstant.FORBIDDEN
           ? 403
           : 500;
-
       res.status(200).json(
         response.error({
           code,
@@ -75,20 +50,77 @@ export const PermissionsController = {
       );
     }
   },
- 
+  getUserByAdmin: async (req, res) => {
+    const error = validation.validationRequest(req, res);
 
-getAllPermissions: async (req, res) => {
+    if (error) return res.status(200).json(error);
+
+    const { limit, offset, search, role, status } = req.query;
+    const user = req.user;
+
     try {
-      const { limit, offset, search } = req.query; 
-      const allPermissions = await permissionsService.getAllPermissions(limit, offset, search);
-  
-      res.status(200).json({
-        message: 'Get folder Successfully',
-        allPermissions,
+      const data = await permissionsService.getUsersByAdmin({
+        limit,
+        offset,
+        role,
+        search,
+        status,
+        userId: user.id,
       });
-    } catch (error) {
-      res.status(500).json({ message: error.toString() });
+
+      res.status(200).json(
+        response.success({
+          data,
+        })
+      );
+    } catch (err) {
+      const errMessage = err?.message;
+      const code =
+        errMessage === studySetConstant.STUDYSET_NOT_FOUND
+          ? 404
+          : authConstant.FORBIDDEN
+          ? 403
+          : 500;
+      res.status(200).json(
+        response.error({
+          code,
+          message: code === 500 ? httpConstant.SERVER_ERROR : errMessage,
+        })
+      );
     }
-  }
- 
+  },
+  updateStatusUser: async (req, res) => {
+    const error = validation.validationRequest(req, res);
+
+    if (error) return res.status(200).json(error);
+
+    const { userId } = req.params;
+    const { isDelete } = req.body;
+
+    try {
+      const result = await permissionsService.updateStatusUser({ userId, isDelete });
+
+      res.status(200).json(
+        response.success({
+          data: {
+            user: result,
+          },
+        })
+      );
+    } catch (err) {
+      const errMessage = err?.message;
+      const code =
+        errMessage === studySetConstant.STUDYSET_NOT_FOUND
+          ? 404
+          : authConstant.FORBIDDEN
+          ? 403
+          : 500;
+      res.status(200).json(
+        response.error({
+          code,
+          message: code === 500 ? httpConstant.SERVER_ERROR : errMessage,
+        })
+      );
+    }
+  },
 };
