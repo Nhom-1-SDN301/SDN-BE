@@ -15,7 +15,7 @@ import permissionsRouter from "./Permissions.routes";
 export const mainRouter = (app) => {
   const v1Router = express.Router();
 
-  v1Router.use(" /auth", authRouter);
+  v1Router.use("/auth", authRouter);
   v1Router.use("/class", classRouter);
   v1Router.use("/folder", folderRouter);
   v1Router.use("/post", postRouter);
@@ -24,6 +24,6 @@ export const mainRouter = (app) => {
   v1Router.use("/user", userRouter);
   v1Router.use("/term", termRouter);
   v1Router.use("/test", testRouter);
-  v1Router.use("/permission", permissionsRouter);
+  v1Router.use("/permissions", permissionsRouter);
   app.use("/api/v1", v1Router);
 };

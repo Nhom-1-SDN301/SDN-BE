@@ -6,4 +6,4 @@ export * from "./Test.service";
 export * from "./User.service";
 export * from "./StudySetReport.service";
 export * from './Folder.service';
-export * from ' ./Permissions.service';
+export * from './Permissions.service';
