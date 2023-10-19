@@ -54,9 +54,24 @@ export const folderService = {
   
       return folderJson;
     },
-  // updateFolderbyFolderId: async (userId, data) =>{
-  //     const folder = await Folder.findById(data?.id)
-  //     console.log(data?.id);
-  //   },
+  updateFolderbyFolderId: async (userId, data) =>{
+      const folder = await Folder.findById(data?.id)
+      
+      if(!folder) throw new Error(folderConstrant.FOLDER_NOT_FOUND);
+      if(!folder.userId.equals(userId)){
+        throw new Error(authConstant.FORBIDDEN);
+      }
+      for(const key in data){
+        if(data.hasOwnProperty(key) &&
+        data[key] !== null &&
+        data[key] !== undefined
+        ){
+          folder[key] = data[key];
+        }
+      }
+      await folder.save();
+      const folderJson = folder.toJSON();
+      return folderJson
+    },
 
 }

@@ -81,5 +81,34 @@ export const FolderController = {
         })
       );
     }
+  },
+  updateFolderbyFolderId: async (req, res) => {
+    const error = validation.validationRequest(req, res);
+    if(error){
+      return res.status(200).json(error);
+    }
+    const data = req.body;
+    const {id} = req.user;
+    try {
+      const folderUpdated = await folderService.updateFolderbyFolderId(id, data);
+      res.status(200).json(
+        response.success({
+          data:{
+            folder: folderUpdated,
+          },
+        })
+      );
+    } catch (err) {
+      const errMessage = err?.message;
+      const code = 
+        errMessage === folderConstrant.FOLDER_NOT_FOUND ? 404 : errMessage === authConstant.FORBIDDEN ? 403 : 500;
+        res.status(200).json(
+          response.error({
+            code,
+            message: errMessage
+          })
+        )
+    }
   }
+  
 };

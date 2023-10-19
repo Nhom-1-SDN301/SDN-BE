@@ -21,4 +21,8 @@ folderRouter.get('/getAll', verifyAccessToken, FolderController.getAllFolder );
 
 folderRouter.delete('/', verifyAccessToken, FolderController.deleteFolder )
 
+folderRouter.patch("/", 
+verifyAccessToken,
+body("title").trim().optional().isLength({max: 255}),
+body("description").trim().optional().isLength({max: 500}), FolderController.updateFolderbyFolderId)
 export default folderRouter;
