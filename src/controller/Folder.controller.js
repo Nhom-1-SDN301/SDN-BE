@@ -36,7 +36,8 @@ export const FolderController = {
   getAllFolder: async (req, res) => {
     try {
       const { limit, offset, search } = req.query; 
-      const allFolder = await folderService.getAllFolder(limit, offset, search);
+      const{ id } =req.user
+      const allFolder = await folderService.getAllFolder(id,limit, offset, search);
   
       res.status(200).json({
         message: 'Get folder Successfully',
