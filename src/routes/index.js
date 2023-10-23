@@ -11,7 +11,7 @@ import classRouter from "./Class.routes";
 import postRouter from "./Post.routes";
 import testRouter from "./Test.routes";
 import studySetReportRouter from "./StudySetReport.routes";
-
+import permissionsRouter from "./Permissions.routes";
 export const mainRouter = (app) => {
   const v1Router = express.Router();
 
@@ -24,6 +24,6 @@ export const mainRouter = (app) => {
   v1Router.use("/user", userRouter);
   v1Router.use("/term", termRouter);
   v1Router.use("/test", testRouter);
-
+  v1Router.use("/permissions", permissionsRouter);
   app.use("/api/v1", v1Router);
 };
