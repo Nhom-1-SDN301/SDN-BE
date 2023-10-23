@@ -2,7 +2,7 @@
 import express from "express";
 
 // ** Middleware
-import { verifyAccessToken } from '../middleware/jwt'
+import { verifyAccessToken } from "../middleware/jwt";
 import { body } from "express-validator";
 
 // ** Controllers
@@ -25,5 +25,7 @@ classRouter.post(
   body("description").optional().trim(),
   ClassController.createClass
 );
+
+classRouter.get("/", verifyAccessToken, ClassController.getClassOfUser);
 
 export default classRouter;

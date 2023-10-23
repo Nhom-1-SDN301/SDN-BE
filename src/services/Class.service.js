@@ -19,4 +19,7 @@ export const classService = {
 
     return classroom.toJSON();
   },
+  getClassOfUser: async ({ userId }) => {
+    return await Klass.find({ userId });
+  },
 };
