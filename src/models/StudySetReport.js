@@ -37,11 +37,16 @@ const StudySetReport = mongoose.model(
         ref: "User",
       },
       comment: {
-        content: String,
-        userId: {
-          type: ObjectId,
-          ref: "User",
+        type: {
+          content: {
+            type: String,
+          },
+          userId: {
+            type: ObjectId,
+            ref: "User",
+          },
         },
+        default: null,
       },
     },
     { timestamps: true }

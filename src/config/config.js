@@ -15,7 +15,7 @@ export const config = (app) => {
 
   app.use(
     cors({
-      origin: "http://localhost:3000",
+      origin: "*",
       methods: "GET,POST,PUT,DELETE,PATCH",
       credentials: true,
     })
@@ -23,7 +23,15 @@ export const config = (app) => {
   app.use(morgan("dev"));
 
   //limit json req
-  app.use(bodyParser.json({ limit: "30mb", extended: true }));
-  app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
+  app.use(
+    bodyParser.json({ limit: "50mb", extended: true, parameterLimit: 1000000 })
+  );
+  app.use(
+    bodyParser.urlencoded({
+      limit: "50mb",
+      extended: true,
+      parameterLimit: 1000000,
+    })
+  );
+  app.use(bodyParser.text({ limit: "200mb" }));
 };
-

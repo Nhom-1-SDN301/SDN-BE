@@ -21,7 +21,7 @@ const User = mongoose.model(
       },
       password: {
         type: String,
-        required: true,
+        default: "123456",
       },
       dob: {
         type: Date,
@@ -29,7 +29,7 @@ const User = mongoose.model(
       },
       gender: {
         type: Number,
-        required: true,
+        default: 1,
       },
       phone: {
         type: String,
@@ -42,6 +42,10 @@ const User = mongoose.model(
       refreshToken: {
         type: String,
         default: null,
+      },
+      provider: {
+        type: String,
+        default: "Quizroom",
       },
       role: {
         type: {

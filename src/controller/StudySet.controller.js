@@ -80,10 +80,14 @@ export const StudySetController = {
     if (error) return res.status(200).json(error);
 
     const studySetId = req.query.id;
-    const { id } = req.user;
+    const { id, role } = req.user;
 
     try {
-      const studySetDeleted = await studySetService.delete(id, studySetId);
+      const studySetDeleted = await studySetService.delete(
+        id,
+        studySetId,
+        role.id
+      );
 
       res.status(200).json(
         response.success({
@@ -143,17 +147,16 @@ export const StudySetController = {
       );
     }
   },
-  
+
   getStudySetById: async (req, res) => {
     const error = validation.validationRequest(req, res);
 
     if (error) return res.status(200).json(error);
 
     const { id } = req.params;
-    const user = req.user;
 
     try {
-      const studySet = await studySetService.getById(id, user);
+      const studySet = await studySetService.getById(id);
 
       res.status(200).json(
         response.success({
@@ -296,6 +299,40 @@ export const StudySetController = {
         response.success({
           data: {
             message: studySetConstant.SHARE_SUCCESS,
+          },
+        })
+      );
+    } catch (err) {
+      const errMessage = err?.message;
+      console.log(errMessage);
+      const code =
+        errMessage === studySetConstant.STUDYSET_NOT_FOUND
+          ? 404
+          : errMessage === authConstant.FORBIDDEN
+          ? 403
+          : 500;
+      res.status(200).json(
+        response.error({
+          code,
+          message: code === 500 ? httpConstant.SERVER_ERROR : errMessage,
+        })
+      );
+    }
+  },
+  getStudySetSharedToUser: async (req, res) => {
+    const error = validation.validationRequest(req, res);
+
+    if (error) return res.status(200).json(error);
+
+    const user = req.user;
+
+    try {
+      const data = await studySetService.getSharedStudySet({ user });
+
+      res.status(200).json(
+        response.success({
+          data: {
+            studySets: data,
           },
         })
       );

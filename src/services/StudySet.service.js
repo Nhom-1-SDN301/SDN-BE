@@ -48,11 +48,11 @@ export const studySetService = {
 
     return studySetJson;
   },
-  delete: async (userId, studySetId) => {
+  delete: async (userId, studySetId, roleId) => {
     const studySet = await StudySet.findById(studySetId);
 
     if (!studySet) throw new Error(studySetConstant.STUDYSET_NOT_FOUND);
-    if (!studySet.userId.equals(userId))
+    if (!studySet.userId.equals(userId) && roleId !== 1 && roleId !== 2)
       throw new Error(authConstant.FORBIDDEN);
 
     studySet.isDelete = true;
@@ -112,13 +112,14 @@ export const studySetService = {
   findById: async (id) => {
     return await StudySet.findById(id);
   },
-  getById: async (studySetId, user) => {
+  getById: async (studySetId) => {
     const studySet = await StudySet.findById(studySetId).populate({
       path: "userId",
       select: "_id fullName email dob gender role picture",
     });
 
-    if (!studySet) throw new Error(studySetConstant.STUDYSET_NOT_FOUND);
+    if (!studySet || studySet?.isDelete)
+      throw new Error(studySetConstant.STUDYSET_NOT_FOUND);
 
     const totalRate = await StudySetRate.countDocuments({
       studySetId,
@@ -280,5 +281,12 @@ export const studySetService = {
     }
 
     return await studySet.save();
+  },
+  getSharedStudySet: async ({ user }) => {
+    const studySets = await StudySet.find({
+      shareTo: { $all: [user.id] },
+    });
+
+    return studySets
   },
 };

@@ -39,6 +39,46 @@ const studySetReportService = {
     await studySetReport.save();
     return studySetReport;
   },
+  get: async ({ status }) => {
+    const data = await StudySetReport.find({
+      status,
+    })
+      .populate({
+        path: "userId",
+        select: "_id fullName email picture",
+      })
+      .populate({
+        path: "studySetId",
+        select: "_id title",
+      })
+      .exec();
+
+    const reports = data.map((rp) => {
+      const json = rp.toJSON();
+
+      json.user = json.userId;
+      json.studySet = json.studySetId;
+
+      delete json.userId;
+      delete json.studySetId;
+      return json;
+    });
+
+    return reports;
+  },
+  updateReport: async ({ userId, id, status, comment }) => {
+    const report = await StudySetReport.findById(id);
+
+    if (!report) throw new Error(studySetConstant.REPORT_NOT_FOUND);
+
+    report.comment = {
+      content: comment,
+      userId,
+    };
+    report.status = status;
+
+    return await report.save();
+  },
 };
 
 export { studySetReportService };

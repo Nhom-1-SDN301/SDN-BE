@@ -3,7 +3,10 @@ import StudySet from "../models/StudySet";
 import User from "../models/User";
 
 // ** Constants
-import { studySetConstant, userConstant } from "../constant";
+import { authConstant, studySetConstant, userConstant } from "../constant";
+
+// ** Utils
+import { date } from "../utils/date";
 
 export const userService = {
   getUsersByEmail: async ({ text, studySetId, userId }) => {
@@ -65,5 +68,36 @@ export const userService = {
     user.isDelete = isDelete;
 
     return await user.save();
+  },
+  updateProfile: async ({ data, userUpdateId, userRequest }) => {
+    const user = await User.findById(userUpdateId);
+
+    if (!user) throw new Error(userConstant.USER_NOT_FOUND);
+
+    if (!userRequest.role.id === 1 && !user._id.equals(userRequest.id))
+      throw new Error(authConstant.FORBIDDEN);
+
+    Object.keys(data).forEach((key) => {
+      if (key !== "picture") {
+        if (key === "dob")
+          user[key] = date.getDateFromDDMMYYYY(data[key]).toISOString();
+        else user[key] = data[key];
+      }
+    });
+
+    user.picture = data.picture
+      ? `${process.env.SERVER_URL}/images/${data.picture}`
+      : data.currentPicture
+      ? user.picture
+      : null;
+
+    await user.save();
+
+    const userJson = user.toJSON();
+
+    delete userJson.password;
+    delete userJson.refreshToken;
+
+    return userJson;
   },
 };

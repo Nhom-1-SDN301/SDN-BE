@@ -60,6 +60,64 @@ export const authService = {
       refreshToken,
     };
   },
+  loginThirdParty: async ({ email, fullName, picture, provider }) => {
+    const user = await User.findOne({ email });
+
+    if (user && user.provider.toLowerCase().includes("quizroom"))
+      throw new Error(authConstant.FORBIDDEN);
+
+    // ** Exist user
+    if (user) {
+      user.fullName = fullName;
+      user.picture = picture;
+
+      const payload = { id: user.id, fullName: user.fullName, role: user.role };
+
+      const { accessToken, refreshToken } = await jwtService.getTokens(payload);
+      user.refreshToken = refreshToken;
+
+      await user.save();
+
+      const userJson = user.toJSON();
+
+      delete userJson.password;
+      delete userJson.refreshToken;
+
+      return {
+        user: userJson,
+        accessToken,
+        refreshToken,
+      };
+    } else {
+      // Create user
+      const user = new User({
+        fullName,
+        email,
+        provider,
+        picture,
+      });
+
+      await user.save();
+
+      const payload = { id: user.id, fullName: user.fullName, role: user.role };
+      const { accessToken, refreshToken } = await jwtService.getTokens(payload);
+
+      user.refreshToken = refreshToken;
+
+      await user.save();
+
+      const userJson = user.toJSON();
+
+      delete userJson.password;
+      delete userJson.refreshToken;
+
+      return {
+        user: userJson,
+        accessToken,
+        refreshToken,
+      };
+    }
+  },
   refreshToken: async ({ payload, refreshToken }) => {
     const user = await User.findById(payload.id);
 
@@ -76,5 +134,23 @@ export const authService = {
     return {
       accessToken,
     };
+  },
+  changePassword: async ({ oldPassword, password, user }) => {
+    const userUpdate = await User.findById(user.id);
+
+    if (!bcrypt.compareSync(oldPassword, userUpdate.password))
+      throw new Error(authConstant.OLD_PASSWORD_INVALID);
+
+    const salt = bcrypt.genSaltSync();
+    userUpdate.password = bcrypt.hashSync(password, salt);
+
+    await userUpdate.save();
+
+    const userJson = userUpdate.toJSON();
+
+    delete userJson.password;
+    delete userJson.refreshToken;
+
+    return userJson;
   },
 };

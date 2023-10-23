@@ -123,4 +123,45 @@ export const UserController = {
       );
     }
   },
+  updateUser: async (req, res) => {
+    const error = validation.validationRequest(req, res);
+
+    if (error) return res.status(200).json(error);
+
+    const picture = req.file;
+    const data = req.body;
+    const { id } = req.params;
+    const user = req.user;
+
+    console.log(data);
+
+    try {
+      const userUpdated = await userService.updateProfile({
+        data: {
+          ...data,
+          picture: picture?.filename,
+        },
+        userRequest: user,
+        userUpdateId: id,
+      });
+
+      res.status(200).json(
+        response.success({
+          data: {
+            user: userUpdated,
+          },
+        })
+      );
+    } catch (err) {
+      const errMessage = err?.message;
+      console.log(errMessage);
+      const code = errMessage === authConstant.FORBIDDEN ? 403 : 500;
+      res.status(200).json(
+        response.error({
+          code,
+          message: code === 500 ? httpConstant.SERVER_ERROR : errMessage,
+        })
+      );
+    }
+  },
 };

@@ -13,4 +13,8 @@ export const studySetConstant = {
   STAR_RANGE: "Star must in range 1 to 5",
   SHARE_SUCCESS: "Share study set to user success",
   LIMIT_REPORT: "You can't report study set at this time",
+  STATUS_REPORT_RANGE: "Status must in range 0 to 2",
+  ID_REPORT_REQUIRED: "Report id is required",
+  STATUS_REPORT_REQUIRED: "Status is required",
+  REPORT_NOT_FOUND: "Report study set not found",
 };

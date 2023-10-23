@@ -79,6 +79,39 @@ export const AuthController = {
         );
     }
   },
+  loginThirdParty: async (req, res) => {
+    const error = validation.validationRequest(req, res);
+
+    if (error) return res.status(200).json(error);
+
+    const { email, fullName, provider, picture } = req.body;
+
+    try {
+      const result = await authService.loginThirdParty({
+        email,
+        fullName,
+        provider,
+        picture,
+      });
+
+      res.status(200).json(
+        response.success({
+          data: result,
+        })
+      );
+    } catch (err) {
+      const errMessage = err?.message;
+      const code = errMessage === authConstant.FORBIDDEN ? 403 : 500;
+
+      console.log(errMessage);
+      res.status(200).json(
+        response.error({
+          code,
+          message: code === 500 ? httpConstant.SERVER_ERROR : errMessage,
+        })
+      );
+    }
+  },
   refreshToken: async (req, res) => {
     const refreshToken = req.refreshToken;
     const payload = req.user;
@@ -100,6 +133,45 @@ export const AuthController = {
         response.error({
           code: 500,
           message: httpConstant.SERVER_ERROR,
+        })
+      );
+    }
+  },
+  changePassword: async (req, res) => {
+    const error = validation.validationRequest(req, res);
+
+    if (error) return res.status(200).json(error);
+
+    const { oldPassword, password } = req.body;
+    const user = req.user;
+
+    try {
+      const userUpdate = await authService.changePassword({
+        user,
+        oldPassword,
+        password,
+      });
+
+      res.status(200).json(
+        response.success({
+          data: {
+            user: userUpdate
+          },
+        })
+      );
+    } catch (err) {
+      const errMessage = err?.message;
+      const code =
+        errMessage === authConstant.OLD_PASSWORD_INVALID
+          ? 401
+          : errMessage === authConstant.FORBIDDEN
+          ? 403
+          : 500;
+
+      res.status(200).json(
+        response.error({
+          code,
+          message: errMessage,
         })
       );
     }

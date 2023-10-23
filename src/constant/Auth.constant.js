@@ -14,4 +14,7 @@ export const authConstant = {
   REFRESH_TOKEN_REQUIRED: "Refresh token is required",
   UNAUTHORIZED: "Unauthorized",
   FORBIDDEN: "Forbidden",
+  PROVIDER_REQUIRED: "Provider is required",
+  OLD_PASSWORD_REQUIRED: "Old password is required",
+  OLD_PASSWORD_INVALID: "Old password is invalid",
 };

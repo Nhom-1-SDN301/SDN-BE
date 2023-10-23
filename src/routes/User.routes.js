@@ -5,12 +5,17 @@ import express from "express";
 import { UserController } from "../controller";
 
 // ** Constants
-import { commonConstant, studySetConstant, userConstant } from "../constant";
+import {
+  authConstant,
+  commonConstant,
+  studySetConstant,
+  userConstant,
+} from "../constant";
 
 // ** Validation
 import { body, param, query } from "express-validator";
 import { verifyAccessToken, verifyAdminOrHigherToken } from "../middleware/jwt";
-import { transporter } from "../config/nodemailer";
+import { uploadImage } from '../config/multer';
 
 const userRouter = express.Router();
 
@@ -73,6 +78,29 @@ userRouter.patch(
     .isBoolean()
     .withMessage(commonConstant.ISDELETE_BOOLEAN),
   UserController.updateStatusUser
+);
+
+userRouter.patch(
+  "/:id",
+  verifyAccessToken,
+  uploadImage.single("picture"),
+  param("id").trim().notEmpty().withMessage(userConstant.ID_REQUIRED),
+  body("fullName")
+    .trim()
+    .notEmpty()
+    .withMessage(authConstant.FULLNAME_REQUIRED),
+  body("dob")
+    .optional()
+    .isDate({ format: "dd/mm/yyyy" })
+    .withMessage(userConstant.DATE_INVALID),
+  body("phone").optional(),
+  body("gender")
+    .notEmpty()
+    .withMessage(authConstant.GENDER_REQUIRED)
+    .isInt({ min: 0, max: 1 })
+    .withMessage(authConstant.GENDER_IN_RANGE),
+  body("address").optional(),
+  UserController.updateUser
 );
 
 export default userRouter;

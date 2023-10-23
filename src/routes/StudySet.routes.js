@@ -73,6 +73,12 @@ studySetRouter.get(
 );
 
 studySetRouter.get(
+  "/shared",
+  verifyAccessToken,
+  StudySetController.getStudySetSharedToUser
+)
+
+studySetRouter.get(
   "/:id",
   verifyLoggedIn,
   param("id").notEmpty().withMessage(studySetConstant.ID_REQUIRED),
