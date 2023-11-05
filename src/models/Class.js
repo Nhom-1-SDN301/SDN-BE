@@ -23,9 +23,13 @@ const Klass = mongoose.model(
         ref: "User",
         required: true,
       },
+      picture: {
+        type: String,
+        default: null
+      },
       inviteCode: {
         type: String,
-        default: new mongoose.Types.ObjectId(),
+        default: null,
       },
       members: [
         {

@@ -6,4 +6,5 @@ export const commonConstant = {
   SEARCH_MAX_LENGTH: "Search length is maximum at 255",
   ISDELETE_REQUIRED: "IsDelete is required",
   ISDELETE_BOOLEAN: "IsDelete is boolean only",
+  BOOLEAN_ONLY: "Boolean only"
 };

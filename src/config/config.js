@@ -4,7 +4,6 @@ import path from "path";
 import cors from "cors";
 import morgan from "morgan";
 import bodyParser from "body-parser";
-import multer from "multer";
 
 export const config = (app) => {
   dotenv.config();

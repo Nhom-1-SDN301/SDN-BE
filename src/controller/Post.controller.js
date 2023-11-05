@@ -1,84 +1,55 @@
-// ** Services
-import { testService } from "../services";
-
-// ** Utils
-import { response } from "../utils/baseResponse";
+// ** Service
+import { postService } from "../services";
 
 // ** Constants
 import { authConstant } from "../constant";
-import { validation } from "../utils/validation";
 import { classConstant } from "../constant/Class.constant";
 
-export const TestController = {
-  getTestToDoById: async (req, res) => {
+// ** Utils
+import { response } from "../utils/baseResponse";
+import { validation } from "../utils/validation";
+
+export const PostController = {
+  createPost: async (req, res) => {
     const error = validation.validationRequest(req, res);
+
     if (error) return res.status(200).json(error);
 
-    const { testId } = req.params;
+    const { id } = req.params;
     const user = req.user;
+    const { content } = req.body;
+
+    const images = [];
+    const files = [];
+
+    req.files.forEach((file) => {
+      const extension = file.filename.split(".").pop().toLowerCase();
+      if (classConstant.IMAGES_ACCEPT.includes(extension))
+        images.push(`${process.env.SERVER_URL}/images/${file.filename}`);
+      else if (classConstant.FILES_ACCEPT.includes(extension))
+        files.push(file.filename);
+    });
 
     try {
-      const test = await testService.getTestToDo({ testId, userId: user.id });
-
-      res.status(200).json(
-        response.success({
-          data: {
-            test,
-          },
-        })
-      );
-    } catch (err) {
-      const errMessage = err?.message;
-      const code =
-        errMessage === classConstant.CLASS_NOT_FOUND ||
-        errMessage === classConstant.TEST_NOT_FOUND
-          ? 404
-          : errMessage === authConstant.FORBIDDEN ||
-            errMessage === classConstant.LIMIT_TIME_DO_TEST
-          ? 403
-          : 500;
-
-      res.status(200).json(
-        response.error({
-          code,
-          message: errMessage,
-        })
-      );
-    }
-  },
-  addQuestion: async (req, res) => {
-    const error = validation.validationRequest(req, res);
-    if (error) return res.status(200).json(error);
-
-    const { testId } = req.params;
-    const user = req.user;
-    const { content, type, answers } = req.body;
-    const file = req.file;
-
-    const answersParse = JSON.parse(answers);
-
-    try {
-      const question = await testService.addQuestion({
-        answers: answersParse,
-        content: content || null,
-        picture: file?.filename || null,
-        testId,
-        type,
+      const post = await postService.create({
+        classId: id,
+        content,
+        files,
+        images,
         userId: user.id,
       });
 
       res.status(200).json(
         response.success({
           data: {
-            question,
+            post,
           },
         })
       );
     } catch (err) {
       const errMessage = err?.message;
       const code =
-        errMessage === classConstant.CLASS_NOT_FOUND ||
-        errMessage === classConstant.TEST_NOT_FOUND
+        errMessage === classConstant.CLASS_NOT_FOUND
           ? 404
           : errMessage === authConstant.FORBIDDEN
           ? 403
@@ -92,31 +63,34 @@ export const TestController = {
       );
     }
   },
-  getQuestionsInTest: async (req, res) => {
+  getPost: async (req, res) => {
     const error = validation.validationRequest(req, res);
+
     if (error) return res.status(200).json(error);
 
-    const { testId } = req.params;
+    const { id } = req.params;
+    const { limit, offset } = req.query;
     const user = req.user;
 
     try {
-      const questions = await testService.getQuestions({
-        testId,
+      const posts = await postService.getPostsInClass({
+        classId: id,
         userId: user.id,
+        limit,
+        offset,
       });
 
       res.status(200).json(
         response.success({
           data: {
-            questions,
+            posts,
           },
         })
       );
     } catch (err) {
       const errMessage = err?.message;
       const code =
-        errMessage === classConstant.CLASS_NOT_FOUND ||
-        errMessage === classConstant.TEST_NOT_FOUND
+        errMessage === classConstant.CLASS_NOT_FOUND
           ? 404
           : errMessage === authConstant.FORBIDDEN
           ? 403
@@ -130,30 +104,41 @@ export const TestController = {
       );
     }
   },
-  deleteQuestion: async (req, res) => {
+  createComment: async (req, res) => {
     const error = validation.validationRequest(req, res);
+
     if (error) return res.status(200).json(error);
 
-    const { testId, questionId } = req.params;
+    const fileImage = req.file;
+    const { classId, postId } = req.params;
+    const { content, replyToComment, replyUser } = req.body;
     const user = req.user;
 
     try {
-      const isSuccess = await testService.removeQuestion({
-        testId,
-        questionId,
+      const comment = await postService.createComment({
+        classId,
+        postId,
+        content,
         userId: user.id,
+        picture: fileImage
+          ? `${process.env.SERVER_URL}/images/${fileImage.filename}`
+          : null,
+        replyToComment,
+        replyUser,
       });
 
       res.status(200).json(
         response.success({
-          isSuccess,
+          data: {
+            comment,
+          },
         })
       );
     } catch (err) {
       const errMessage = err?.message;
       const code =
         errMessage === classConstant.CLASS_NOT_FOUND ||
-        errMessage === classConstant.TEST_NOT_FOUND
+        errMessage === classConstant.POST_NOT_FOUND
           ? 404
           : errMessage === authConstant.FORBIDDEN
           ? 403
@@ -167,39 +152,32 @@ export const TestController = {
       );
     }
   },
-  updateTest: async (req, res) => {
+  getCommentsOfPost: async (req, res) => {
     const error = validation.validationRequest(req, res);
+
     if (error) return res.status(200).json(error);
 
-    const { testId } = req.params;
-    const { title, description, limitTimesDoTest, time, endAt, isActive } =
-      req.body;
+    const { classId, postId } = req.params;
     const user = req.user;
 
     try {
-      const test = await testService.updateTest({
-        description,
-        endAt,
-        isActive,
-        limitTimesDoTest,
-        testId,
-        time,
-        title,
+      const data = await postService.getCommentOfPost({
+        classId,
+        postId,
         userId: user.id,
       });
 
       res.status(200).json(
         response.success({
-          data: {
-            test,
-          },
+          data,
         })
       );
     } catch (err) {
       const errMessage = err?.message;
       const code =
         errMessage === classConstant.CLASS_NOT_FOUND ||
-        errMessage === classConstant.TEST_NOT_FOUND
+        errMessage === classConstant.POST_NOT_FOUND ||
+        errMessage === classConstant.COMMENT_NOT_FOUND
           ? 404
           : errMessage === authConstant.FORBIDDEN
           ? 403
@@ -213,34 +191,31 @@ export const TestController = {
       );
     }
   },
-  submitTest: async (req, res) => {
+  removeComment: async (req, res) => {
     const error = validation.validationRequest(req, res);
+
     if (error) return res.status(200).json(error);
 
-    const { testId } = req.params;
-    const { userChoices, doTime } = req.body;
+    const { classId, postId } = req.params;
+    const { mainCommentId, subCommentId } = req.body;
     const user = req.user;
 
     try {
-      const submitTest = await testService.submitTest({
-        testId,
+      await postService.removeComment({
+        classId,
+        postId,
+        mainCommentId,
+        subCommentId,
         userId: user.id,
-        userChoices,
-        doTime,
       });
 
-      res.status(200).json(
-        response.success({
-          data: {
-            submitTest,
-          },
-        })
-      );
+      res.status(200).json(response.success({}));
     } catch (err) {
       const errMessage = err?.message;
       const code =
         errMessage === classConstant.CLASS_NOT_FOUND ||
-        errMessage === classConstant.TEST_NOT_FOUND
+        errMessage === classConstant.POST_NOT_FOUND ||
+        errMessage === classConstant.COMMENT_NOT_FOUND
           ? 404
           : errMessage === authConstant.FORBIDDEN
           ? 403
@@ -254,23 +229,29 @@ export const TestController = {
       );
     }
   },
-  getTestHistory: async (req, res) => {
+  updateComment: async (req, res) => {
     const error = validation.validationRequest(req, res);
+
     if (error) return res.status(200).json(error);
 
-    const { testId } = req.params;
+    const { classId, postId } = req.params;
+    const { mainCommentId, subCommentId, content } = req.body;
     const user = req.user;
 
     try {
-      const testsHistory = await testService.getTestHistory({
-        testId,
+      const comment = await postService.updateComment({
+        classId,
+        postId,
+        mainCommentId,
+        subCommentId,
+        content,
         userId: user.id,
       });
 
       res.status(200).json(
         response.success({
           data: {
-            testsHistory,
+            comment,
           },
         })
       );
@@ -278,7 +259,8 @@ export const TestController = {
       const errMessage = err?.message;
       const code =
         errMessage === classConstant.CLASS_NOT_FOUND ||
-        errMessage === classConstant.TEST_NOT_FOUND
+        errMessage === classConstant.POST_NOT_FOUND ||
+        errMessage === classConstant.COMMENT_NOT_FOUND
           ? 404
           : errMessage === authConstant.FORBIDDEN
           ? 403

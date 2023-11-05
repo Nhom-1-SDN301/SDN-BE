@@ -14,6 +14,10 @@ const Test = mongoose.model(
         type: String,
         required: false,
       },
+      subject: {
+        type: String,
+        require: true,
+      },
       limitTimesDoTest: {
         type: Number,
         default: 1,
@@ -29,10 +33,9 @@ const Test = mongoose.model(
             default: null,
           },
           type: {
-            name: {
-              type: String,
-              required: true,
-            },
+            type: String,
+            enum: ["single", "multiple"],
+            default: "single",
           },
           answers: [
             {
@@ -42,7 +45,7 @@ const Test = mongoose.model(
               },
               picture: {
                 type: String,
-                required: false,
+                default: null,
               },
               isCorrect: {
                 type: Boolean,
@@ -57,10 +60,13 @@ const Test = mongoose.model(
       time: { type: Number, require: true },
       startAt: { type: Number, require: true },
       endAt: { type: Number, require: true },
+      isActive: {
+        type: Boolean,
+        default: false,
+      },
       isDelete: {
         type: Boolean,
         default: false,
-        select: false,
       },
     },
     { timestamps: true }

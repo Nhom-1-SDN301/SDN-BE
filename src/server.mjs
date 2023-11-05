@@ -9,6 +9,15 @@ import { connection } from "./config/database";
 import { mainRouter } from "./routes";
 import { swaggerConfig } from "./config/swagger";
 
+// ** Paths
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+global.__root = __dirname;
+
 const app = express();
 
 config(app);

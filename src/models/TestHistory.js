@@ -25,10 +25,9 @@ const TestHistory = mongoose.model(
             default: null,
           },
           type: {
-            name: {
-              type: String,
-              required: true,
-            },
+            type: String,
+            enum: ["single", "multiple"],
+            default: "single",
           },
           answers: [
             {
@@ -57,8 +56,6 @@ const TestHistory = mongoose.model(
       classId: { type: ObjectId, ref: "Class" },
       time: { type: Number, required: true },
       doTime: { type: Number, required: true },
-      startAt: { type: Number, required: true },
-      endAt: { type: Number, required: true },
       isDelete: {
         type: Boolean,
         default: false,

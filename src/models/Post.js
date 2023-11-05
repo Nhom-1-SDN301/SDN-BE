@@ -6,17 +6,18 @@ const Post = mongoose.model(
   "Post",
   new Schema(
     {
-      title: {
-        type: String,
-        required: true,
-      },
       content: {
         type: String,
-        required: false,
+        default: null,
       },
       userId: { type: ObjectId, ref: "User", required: true },
       classId: { type: ObjectId, ref: "Class", required: true },
       files: [
+        {
+          type: String,
+        },
+      ],
+      images: [
         {
           type: String,
         },
