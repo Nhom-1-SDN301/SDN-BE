@@ -64,6 +64,18 @@ export const studySetService = {
 
     return studySetJson;
   },
+  getAllStudySetByUserId: async (userId) => {
+    try {
+      const studySets = await StudySet.find(userId);
+      return {
+        studySets
+      };
+    } catch (error) {
+      console.error(error);
+      throw error; 
+    }
+  }
+  ,
   getAllByUserId: async (userId, limit, offset, search) => {
     const limitNum = Number.parseInt(limit);
     const offsetNum = Number.parseInt(offset);
@@ -101,6 +113,7 @@ export const studySetService = {
         return json;
       })
     );
+    
 
     return {
       limit: limitNum,
