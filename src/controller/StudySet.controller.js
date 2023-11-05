@@ -181,6 +181,38 @@ export const StudySetController = {
   },
   getStudySetById: async (req, res) => {
     const error = validation.validationRequest(req, res);
+    if (error) {
+      return res.status(200).json(error);
+    }
+    const user = req.user;
+    const {folder} = req.body
+    try {
+      const studySet = await studySetService.getAllStudySetByUserId(user);
+      res.status(200).json(
+        response.success({
+          data: {
+            studySet,
+          },
+        })
+      );
+    } catch (err) {
+      const errMessage = err?.message;
+      const code =
+        errMessage === studySetConstant.STUDYSET_NOT_FOUND
+          ? 404
+          : errMessage === authConstant.FORBIDDEN
+            ? 403
+            : 500;
+      res.status(200).json(
+        response.error({
+          code,
+          message: code === 500 ? httpConstant.SERVER_ERROR : errMessage,
+        })
+      );
+    }
+  },
+  getStudySetById: async (req, res) => {
+    const error = validation.validationRequest(req, res);
 
     if (error) return res.status(200).json(error);
 
