@@ -35,6 +35,8 @@ studySetRouter.post(
   StudySetController.createStudySet
 );
 
+studySetRouter.get("/getAll", StudySetController.getAllStudySetByUserId)
+
 studySetRouter.patch(
   "/",
   verifyAccessToken,
