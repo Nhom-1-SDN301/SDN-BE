@@ -300,7 +300,14 @@ export const testService = {
     const test = await Test.findById(testId);
     if (!test) throw new Error(classConstant.TEST_NOT_FOUND);
 
-    if (!test.userId.equals(userId)) throw new Error(authConstant.FORBIDDEN);
+    const testsHistory = await TestHistory.find({ testId, userId });
 
+    const testsHistoryJson = testsHistory.map(history => {
+      const json = history.toJSON();
+
+      return json
+    })
+
+    return testsHistoryJson;
   },
 };
