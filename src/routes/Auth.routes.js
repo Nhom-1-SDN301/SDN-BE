@@ -90,6 +90,18 @@ authRouter.patch(
   AuthController.changePassword
 );
 
+authRouter.post("/reset-password", AuthController.resetPassword);
+
+authRouter.post(
+  "/reset-password/:token",
+  body("password")
+    .notEmpty()
+    .withMessage(authConstant.PASSWORD_REQUIRED)
+    .isLength({ min: 6 })
+    .withMessage(authConstant.PASSWORD_MIN_LENGTH),
+  AuthController.resetPasswordToken
+);
+
 authRouter.get(
   "/refresh-token",
   verifyRefreshToken,

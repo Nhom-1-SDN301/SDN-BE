@@ -152,10 +152,11 @@ export const StudySetController = {
     if (error) {
       return res.status(200).json(error);
     }
+    
     const user = req.user;
-    const {folder} = req.body
+
     try {
-      const studySet = await studySetService.getAllStudySetByUserId(user);
+      const studySet = await studySetService.getAllStudySetByUserId({ userId: user.id });
       res.status(200).json(
         response.success({
           data: {

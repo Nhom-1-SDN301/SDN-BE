@@ -4,6 +4,8 @@ import path from "path";
 import cors from "cors";
 import morgan from "morgan";
 import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
+import session from 'express-session';
 
 export const config = (app) => {
   dotenv.config();
@@ -11,10 +13,21 @@ export const config = (app) => {
   app.use(express.static(path.join("./src", "assets")));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+  app.use(cookieParser());
+  app.use(
+    session({
+      secret: "SECRET",
+      resave: true,
+      saveUninitialized: true,
+      cookie: {
+        maxAge: 15 * 60 * 1000,
+      },
+    })
+  );
 
   app.use(
     cors({
-      origin: "*",
+      origin: [process.env.CLIENT_URL],
       methods: "GET,POST,PUT,DELETE,PATCH",
       credentials: true,
     })

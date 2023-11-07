@@ -5,10 +5,14 @@ import { authService } from "../services";
 import { response } from "../utils/baseResponse";
 
 // ** Constants
-import { authConstant, httpConstant } from "../constant";
+import { authConstant, httpConstant, userConstant } from "../constant";
 
 // ** Validator
 import { validation } from "../utils/validation";
+
+// ** Libs
+import crypto from "crypto";
+import { transporter } from "../config/nodemailer";
 
 export const AuthController = {
   register: async (req, res) => {
@@ -139,7 +143,6 @@ export const AuthController = {
   },
   changePassword: async (req, res) => {
     const error = validation.validationRequest(req, res);
-
     if (error) return res.status(200).json(error);
 
     const { oldPassword, password } = req.body;
@@ -155,7 +158,7 @@ export const AuthController = {
       res.status(200).json(
         response.success({
           data: {
-            user: userUpdate
+            user: userUpdate,
           },
         })
       );
@@ -166,6 +169,70 @@ export const AuthController = {
           ? 401
           : errMessage === authConstant.FORBIDDEN
           ? 403
+          : 500;
+
+      res.status(200).json(
+        response.error({
+          code,
+          message: errMessage,
+        })
+      );
+    }
+  },
+  resetPassword: async (req, res) => {
+    const error = validation.validationRequest(req, res);
+    if (error) return res.status(200).json(error);
+
+    const { email } = req.body;
+
+    try {
+      const isSuccess = await authService.verifyResetPassword({ email, req });
+
+      res.status(200).json(
+        response.success({
+          isSuccess,
+        })
+      );
+    } catch (err) {
+      const errMessage = err?.message;
+      const code = errMessage === userConstant.USER_NOT_EXIST ? 404 : 500;
+
+      res.status(200).json(
+        response.error({
+          code,
+          message: errMessage,
+        })
+      );
+    }
+  },
+  resetPasswordToken: async (req, res) => {
+    const error = validation.validationRequest(req, res);
+    if (error) return res.status(200).json(error);
+
+    const { token } = req.params;
+    const { password } = req.body;
+
+    try {
+      const email = req.session[token];
+      if (!email) throw new Error(authConstant.TOKEN_EXPIRED);
+
+      const isSuccess = await authService.updatePassword({ email, password });
+
+      // Clear cookie
+      res.cookie(token, "", { expires: new Date(0) });
+      
+      res.status(200).json(
+        response.success({
+          isSuccess,
+        })
+      );
+    } catch (err) {
+      const errMessage = err?.message;
+      const code =
+        errMessage === userConstant.USER_NOT_EXIST
+          ? 404
+          : errMessage === authConstant.TOKEN_EXPIRED
+          ? 401
           : 500;
 
       res.status(200).json(

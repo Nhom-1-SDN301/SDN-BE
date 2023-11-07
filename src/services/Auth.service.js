@@ -6,9 +6,11 @@ import { jwtService } from "../utils/jwt";
 
 // ** Third Libs
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 
 // ** Constants
 import { authConstant, userConstant } from "../constant";
+import { transporter } from "../config/nodemailer";
 
 export const authService = {
   createUser: async ({ email, fullName, password, gender }) => {
@@ -152,5 +154,38 @@ export const authService = {
     delete userJson.refreshToken;
 
     return userJson;
+  },
+  verifyResetPassword: async ({ email, req }) => {
+    const user = await User.findOne({ email });
+    if (!user) throw new Error(userConstant.USER_NOT_EXIST);
+
+    const token = crypto.randomBytes(20).toString("hex");
+
+    req.session[token] = email;
+
+    const CLIENT_URL = process.env.CLIENT_URL;
+
+    await transporter.sendMail({
+      from: "BOT",
+      to: email,
+      subject: "Notification",
+      html: `You are receiving this email because you (or someone else) have requested the reset of the password for your account.\n\n
+      Please click on the following link, or paste this into your browser to complete the process:\n\n
+      <a href="${CLIENT_URL}/reset-password/${token}">reset password</a>\n\n
+      If you did not request this, please ignore this email and your password will remain unchanged.\n`,
+    });
+
+    return true;
+  },
+  updatePassword: async ({ email, password }) => {
+    const user = await User.findOne({ email });
+    if (!user) throw new Error(userConstant.USER_NOT_EXIST);
+
+    const salt = bcrypt.genSaltSync();
+    user.password = bcrypt.hashSync(password, salt);
+
+    await user.save();
+
+    return true;
   },
 };

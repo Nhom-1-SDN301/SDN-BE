@@ -64,18 +64,17 @@ export const studySetService = {
 
     return studySetJson;
   },
-  getAllStudySetByUserId: async (userId) => {
+  getAllStudySetByUserId: async ({ userId }) => {
     try {
-      const studySets = await StudySet.find(userId);
+      const studySets = await StudySet.find({ userId });
       return {
-        studySets
+        studySets,
       };
     } catch (error) {
       console.error(error);
-      throw error; 
+      throw error;
     }
-  }
-  ,
+  },
   getAllByUserId: async (userId, limit, offset, search) => {
     const limitNum = Number.parseInt(limit);
     const offsetNum = Number.parseInt(offset);
@@ -113,7 +112,6 @@ export const studySetService = {
         return json;
       })
     );
-    
 
     return {
       limit: limitNum,
@@ -300,6 +298,6 @@ export const studySetService = {
       shareTo: { $all: [user.id] },
     });
 
-    return studySets
+    return studySets;
   },
 };
