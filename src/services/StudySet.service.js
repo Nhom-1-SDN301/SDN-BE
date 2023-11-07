@@ -66,7 +66,12 @@ export const studySetService = {
   },
   getAllStudySetByUserId: async ({ userId }) => {
     try {
-      const studySets = await StudySet.find({ userId });
+      const studySets = await StudySet.find({ userId })
+        .populate({
+          path: "userId",
+          select: "_id fullName email dob gender role picture",
+        });
+
       return {
         studySets,
       };
