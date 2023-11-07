@@ -73,7 +73,7 @@ export const PostController = {
     const user = req.user;
 
     try {
-      const posts = await postService.getPostsInClass({
+      const { posts, isHasMore } = await postService.getPostsInClass({
         classId: id,
         userId: user.id,
         limit,
@@ -84,6 +84,7 @@ export const PostController = {
         response.success({
           data: {
             posts,
+            isHasMore,
           },
         })
       );
@@ -252,6 +253,42 @@ export const PostController = {
         response.success({
           data: {
             comment,
+          },
+        })
+      );
+    } catch (err) {
+      const errMessage = err?.message;
+      const code =
+        errMessage === classConstant.CLASS_NOT_FOUND ||
+        errMessage === classConstant.POST_NOT_FOUND ||
+        errMessage === classConstant.COMMENT_NOT_FOUND
+          ? 404
+          : errMessage === authConstant.FORBIDDEN
+          ? 403
+          : 500;
+
+      res.status(200).json(
+        response.error({
+          code,
+          message: errMessage,
+        })
+      );
+    }
+  },
+  removePost: async (req, res) => {
+    const error = validation.validationRequest(req, res);
+    if (error) return res.status(200).json(error);
+
+    const { classId, postId } = req.params;
+    const user = req.user;
+
+    try {
+      const post = await postService.removePost({ classId, postId, user });
+
+      res.status(200).json(
+        response.success({
+          data: {
+            post,
           },
         })
       );

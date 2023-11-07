@@ -170,6 +170,33 @@ export const testService = {
 
     return test;
   },
+  addQuestionsExcel: async ({ data, user, testId }) => {
+    const test = await Test.findById(testId);
+    if (!test) throw new Error(classConstant.TEST_NOT_FOUND);
+
+    for (let i = 0; i < data.length; ++i) {
+      const answers = [];
+      const correct = data[i].correct;
+
+      const keys = Object.keys(data[i]).filter((key) => key.includes("answer"));
+      for (let j = 0; j < keys.length; ++j) {
+        const answerContent = data[i][keys[j]];
+        answers.push({
+          content: answerContent,
+          isCorrect: answerContent === correct,
+        });
+      }
+
+      test.questions.push({
+        content: data[i].question,
+        answers,
+      });
+    }
+
+    await test.save();
+
+    return test;
+  },
   getQuestions: async ({ testId, userId }) => {
     const test = await Test.findById(testId);
     if (!test) throw new Error(classConstant.TEST_NOT_FOUND);
@@ -302,12 +329,41 @@ export const testService = {
 
     const testsHistory = await TestHistory.find({ testId, userId });
 
-    const testsHistoryJson = testsHistory.map(history => {
+    const testsHistoryJson = testsHistory.map((history) => {
       const json = history.toJSON();
 
-      return json
-    })
+      return json;
+    });
 
     return testsHistoryJson;
+  },
+  updateQuestion: async ({
+    questionId,
+    testId,
+    content,
+    picture,
+    type,
+    answers,
+  }) => {
+    const test = await Test.findById(testId);
+    if (!test) throw new Error(classConstant.TEST_NOT_FOUND);
+
+    test.questions = test.questions.map((question) => {
+      if (question._id.equals(questionId)) {
+        return {
+          ...question,
+          content,
+          picture,
+          type,
+          answers,
+        };
+      } else return question;
+    });
+
+    await test.save();
+
+    console.log(test.questions);
+
+    return test.questions.find((question) => question._id.equals(questionId));
   },
 };

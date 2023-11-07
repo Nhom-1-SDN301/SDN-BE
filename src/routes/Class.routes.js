@@ -98,6 +98,14 @@ classRouter.get(
   PostController.getPost
 );
 
+classRouter.delete(
+  "/:classId/post/:postId",
+  verifyAccessToken,
+  param("classId").notEmpty().withMessage(classConstant.ID_REQUIRED),
+  param("postId").notEmpty().withMessage(classConstant.POST_ID_REQUIRED),
+  PostController.removePost
+)
+
 classRouter.post(
   "/:classId/post/:postId/comment",
   verifyAccessToken,

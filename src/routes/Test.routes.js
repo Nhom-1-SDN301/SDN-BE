@@ -31,6 +31,14 @@ testRouter.patch(
   TestController.addQuestion
 );
 
+testRouter.post(
+  "/:testId/questions",
+  verifyAccessToken,
+  param("testId").notEmpty().withMessage(classConstant.TEST_ID_REQUIRED),
+  uploadFiles.single("file"),
+  TestController.addQuestionsExcel
+);
+
 testRouter.put(
   "/:testId",
   verifyAccessToken,
@@ -55,6 +63,20 @@ testRouter.get(
   "/:testId/questions",
   verifyAccessToken,
   TestController.getQuestionsInTest
+);
+
+testRouter.patch(
+  "/:testId/questions/:questionId",
+  verifyAccessToken,
+  param("testId").notEmpty().withMessage(classConstant.TEST_ID_REQUIRED),
+  param("questionId")
+    .notEmpty()
+    .withMessage(classConstant.QUESTION_ID_REQUIRED),
+  uploadFiles.single("picture"),
+  body("content").optional(),
+  body("type").notEmpty().withMessage("Type is required"),
+  body("answers").notEmpty().withMessage("Answers is required"),
+  TestController.updateQuestion
 );
 
 testRouter.delete(
@@ -87,6 +109,6 @@ testRouter.get(
   verifyAccessToken,
   param("testId").notEmpty().withMessage(classConstant.TEST_ID_REQUIRED),
   TestController.getTestHistory
-)
+);
 
 export default testRouter;

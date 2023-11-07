@@ -5,9 +5,9 @@ import multer from "multer";
 import { date } from "../utils/date";
 
 // Accept file
-const fileTypes = ["jpeg", "png", "jpg", "txt", "docx", "csv", "rar", "zip"];
+const fileTypes = ["jpeg", "png", "jpg", "txt", "docx", "csv", "xlsx", "rar", "zip"];
 const imagesType = ["jpeg", "png", "jpg"];
-const otherTypes = ["docx", "csv", "rar", "zip", "txt"];
+const otherTypes = ["docx", "csv", "rar", "zip", "txt", "xlsx"];
 
 // Config storage images
 const storageImage = multer.diskStorage({
@@ -31,8 +31,6 @@ const storageFile = multer.diskStorage({
     const type = file.originalname
       .split(".")
       [file.originalname.split(".").length - 1].toLowerCase();
-
-      console.log(type);
 
     if (imagesType.includes(type)) {
       cb(null, "./src/assets/images");

@@ -54,7 +54,7 @@ export const postService = {
     const limitNum = Number.parseInt(limit);
     const offSetNum = Number.parseInt(offset);
 
-    const posts = await Post.find({ classId: classId })
+    const posts = await Post.find({ classId: classId, isDelete: false })
       .sort({ _id: -1 })
       .populate({
         path: "userId",
@@ -73,7 +73,19 @@ export const postService = {
       return json;
     });
 
-    return postsJson;
+    const dataNext = await Post.find({
+      classId,
+      isDelete: false,
+    })
+      .sort({ _id: -1 })
+      .limit(limitNum)
+      .skip(limitNum * (offSetNum + 1))
+      .exec();
+
+    return {
+      posts: postsJson,
+      isHasMore: dataNext.length > 0,
+    };
   },
   createComment: async ({
     classId,
@@ -289,9 +301,30 @@ export const postService = {
         throw new Error(authConstant.FORBIDDEN);
 
       comment.content = content;
-      
+
       await comment.save();
       return comment;
     }
+  },
+  removePost: async ({ classId, postId, user }) => {
+    const klass = await Klass.findById(classId);
+    if (!klass) throw new Error(classConstant.CLASS_NOT_FOUND);
+
+    const post = await Post.findById(postId);
+    if (!post) throw new Error(classConstant.POST_NOT_FOUND);
+
+    if (
+      !(
+        post.userId.equals(user.id) ||
+        klass.userId.equals(user.id) ||
+        user.role.id === 1
+      )
+    )
+      throw new Error(authConstant.FORBIDDEN);
+
+    post.isDelete = true;
+    await post.save();
+
+    return post;
   },
 };
