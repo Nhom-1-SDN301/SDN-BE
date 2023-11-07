@@ -78,15 +78,28 @@ export const folderService = {
 
     await folder.save();
 },
+  // getStudySetByFolderId: async (folderId, userId) => {
+  //   const folder = await Folder.findOne({ _id: folderId, userId });
+  //   if (!folder.studySets) {
+  //     return [];
+  //   }
+  //   const studySetIds = folder.studySets;
+  //   const studySets = await StudySet.find({ _id: { $in: studySetIds } });
+  //   return studySets; 
+  // },
   getStudySetByFolderId: async (folderId, userId) => {
     const folder = await Folder.findOne({ _id: folderId, userId });
     if (!folder.studySets) {
       return [];
     }
     const studySetIds = folder.studySets;
-    const studySets = await StudySet.find({ _id: { $in: studySetIds } });
+    const studySets = await StudySet.find({ _id: { $in: studySetIds } })
+        .populate({
+          path: "userId",
+          select: "_id fullName email dob gender role picture",
+        });
     return studySets; 
-  },
+},
 
   deleteFolder: async (userId, folderId) => {
     const folder = await Folder.findById(folderId);
