@@ -40,8 +40,19 @@ export const testService = {
     });
 
     await test.save();
+    await test.populate({
+      path: "userId",
+      select: "_id fullName email dob gender role picture",
+    });
 
-    return test;
+    const testJson = test.toJSON();
+    testJson["user"] = testJson.userId;
+    testJson["numberOfQuestion"] = 0;
+
+    delete testJson.questions;
+    delete testJson.userId;
+
+    return testJson;
   },
   getTestsInClass: async ({ classId, userId }) => {
     const klass = await Klass.findById(classId);
@@ -331,6 +342,26 @@ export const testService = {
 
     const testsHistoryJson = testsHistory.map((history) => {
       const json = history.toJSON();
+
+      return json;
+    });
+
+    return testsHistoryJson;
+  },
+  getAllTestHistoryOfTest: async ({ testId, userId }) => {
+    const test = await Test.findById(testId);
+    if (!test) throw new Error(classConstant.TEST_NOT_FOUND);
+
+    const testsHistory = await TestHistory.find({ testId }).populate({
+      path: "userId",
+      select: "_id fullName email dob gender role picture",
+    });
+
+    const testsHistoryJson = testsHistory.map((history) => {
+      const json = history.toJSON();
+      json["user"] = json.userId;
+
+      delete json.userId;
 
       return json;
     });

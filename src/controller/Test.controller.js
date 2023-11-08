@@ -336,6 +336,44 @@ export const TestController = {
       );
     }
   },
+  getAllTestHistoryOfTest: async (req, res) => {
+    const error = validation.validationRequest(req, res);
+    if (error) return res.status(200).json(error);
+
+    const { testId } = req.params;
+    const user = req.user;
+
+    try {
+      const testsHistory = await testService.getAllTestHistoryOfTest({
+        testId,
+        userId: user.id,
+      });
+
+      res.status(200).json(
+        response.success({
+          data: {
+            testsHistory,
+          },
+        })
+      );
+    } catch (err) {
+      const errMessage = err?.message;
+      const code =
+        errMessage === classConstant.CLASS_NOT_FOUND ||
+        errMessage === classConstant.TEST_NOT_FOUND
+          ? 404
+          : errMessage === authConstant.FORBIDDEN
+          ? 403
+          : 500;
+
+      res.status(200).json(
+        response.error({
+          code,
+          message: errMessage,
+        })
+      );
+    }
+  },
   updateQuestion: async (req, res) => {
     const error = validation.validationRequest(req, res);
     if (error) return res.status(200).json(error);

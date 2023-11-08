@@ -111,4 +111,11 @@ testRouter.get(
   TestController.getTestHistory
 );
 
+testRouter.get(
+  "/:testId/history/teacher",
+  verifyAccessToken,
+  param("testId").notEmpty().withMessage(classConstant.TEST_ID_REQUIRED),
+  TestController.getAllTestHistoryOfTest
+)
+
 export default testRouter;
