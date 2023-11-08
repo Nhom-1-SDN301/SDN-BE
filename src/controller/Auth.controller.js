@@ -66,7 +66,8 @@ export const AuthController = {
 
       if (
         errMessage === authConstant.PASSWORD_INVALID ||
-        errMessage === authConstant.EMAIL_NOT_EXIST
+        errMessage === authConstant.EMAIL_NOT_EXIST ||
+        errMessage === authConstant.USER_BANNED
       )
         res.status(200).json(
           response.error({
@@ -220,7 +221,7 @@ export const AuthController = {
 
       // Clear cookie
       res.cookie(token, "", { expires: new Date(0) });
-      
+
       res.status(200).json(
         response.success({
           isSuccess,

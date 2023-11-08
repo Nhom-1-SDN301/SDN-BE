@@ -45,6 +45,8 @@ export const authService = {
 
     if (!passwordOk) throw new Error(authConstant.PASSWORD_INVALID);
 
+    if (user.isDelete) throw new Error(authConstant.USER_BANNED)
+
     const payload = { id: user.id, fullName: user.fullName, role: user.role };
     const { accessToken, refreshToken } = await jwtService.getTokens(payload);
 

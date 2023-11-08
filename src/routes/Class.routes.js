@@ -104,7 +104,7 @@ classRouter.delete(
   param("classId").notEmpty().withMessage(classConstant.ID_REQUIRED),
   param("postId").notEmpty().withMessage(classConstant.POST_ID_REQUIRED),
   PostController.removePost
-)
+);
 
 classRouter.post(
   "/:classId/post/:postId/comment",
@@ -252,6 +252,13 @@ classRouter.get(
   param("classId").notEmpty().withMessage(classConstant.ID_REQUIRED),
   param("testId").notEmpty().withMessage(classConstant.TEST_ID_REQUIRED),
   ClassController.getTestById
+);
+
+classRouter.patch(
+  "/:classId/unenroll",
+  verifyAccessToken,
+  param("classId").notEmpty().withMessage(classConstant.ID_REQUIRED),
+  ClassController.unenroll
 );
 
 export default classRouter;

@@ -397,4 +397,16 @@ export const testService = {
 
     return test.questions.find((question) => question._id.equals(questionId));
   },
+  unenroll: async ({ classId, userId }) => {
+    const klass = await Klass.findById(classId);
+    if (!klass) throw new Error(classConstant.CLASS_NOT_FOUND);
+
+    klass.members = klass.members.filter(
+      (member) => !member.userId.equals(userId)
+    );
+
+    await klass.save();
+
+    return true;
+  },
 };

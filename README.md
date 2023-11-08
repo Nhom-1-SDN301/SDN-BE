@@ -2,8 +2,9 @@
 Tạo file `.env` sau đó copy tất cả từ `.env.example` sang file `.env`.
 
 ## 2. Migrate data
-Trỏ tới thư mục `seeder` sau đó chạy:
-`root > src > seeder`
+- **Lưu ý**: Đây là thao tác seed data mẫu chỉ cần làm 1 lần duy nhất 
+- **Thực hiện**: Trỏ tới thư mục `seeder` sau đó chạy:
+- **Đường dẫn thư mục seeder**: `root > src > seeder`
 ``` migrate data
 yarn seed
 ```
