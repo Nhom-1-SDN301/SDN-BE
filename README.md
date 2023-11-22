@@ -1,3 +1,6 @@
+## Required
+Node version `18.18.0`.
+
 ## 1. Config
 Tạo file `.env` sau đó copy tất cả từ `.env.example` sang file `.env`.
 
